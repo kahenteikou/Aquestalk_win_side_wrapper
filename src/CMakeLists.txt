@@ -1,0 +1,1 @@
+add_executable(aquestalk_wrapper_win main.cpp)
