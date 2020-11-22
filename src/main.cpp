@@ -1,17 +1,12 @@
 #include "main.hpp"
 
 int main(int argc,char* argv[]){
-    HMODULE dll = LoadLibraryW(L"AquesTalk.dll");
-    if(dll==NULL){
-        std::cerr << "Failed load AquesTalk" << std::endl;
-        return -810;
-    }
-    
     int opt;
     int speed=0;
     std::string inputfile="";
     std::string outputfile="";
-    while((opt=getopt(argc,argv,"hs:i:o:")) != -1){
+    std::string dll_path="";
+    while((opt=getopt(argc,argv,"hs:i:o:d:")) != -1){
         switch(opt){
             case 'h':
                 usage();
@@ -24,6 +19,9 @@ int main(int argc,char* argv[]){
                 break;
             case 'o':
                 outputfile=optarg;
+                break;
+            case 'd':
+                dll_path=optarg;
                 break;
             case '?':
                 usage();
@@ -45,6 +43,17 @@ int main(int argc,char* argv[]){
         usage();
         return -1;
     }
+    if(dll_path == ""){
+        std::cerr << "Missing Dll" << std::endl;
+        usage();
+        return -1;
+    }
+    HMODULE dll = LoadLibraryA(dll_path.c_str());
+    if(dll==NULL){
+        std::cerr << "Failed load AquesTalk" << std::endl;
+        return -810;
+    }
+    
     std::fstream fskun(inputfile,std::ios::in);
     if(!fskun){
         std::cerr << "Error ! Can't open "<< inputfile << std::endl;
@@ -68,7 +77,7 @@ int main(int argc,char* argv[]){
         std::cerr << "Error ! Can't open " << outputfile << std::endl;
         return -2;
     }
-    out_stream << wavdata;
+    out_stream.write((char*)wavdata,size);
     LPFNAquesTalk_FreeWave FreeWave=0;
     FreeWave=(LPFNAquesTalk_FreeWave)GetProcAddress(dll,"AquesTalk_FreeWave");
     if(FreeWave == 0){
@@ -84,5 +93,5 @@ int main(int argc,char* argv[]){
 }
 void usage(){
     std::cout << "Usage:" << std::endl;
-    std::cout << "\taquestalk_wrapper_win.exe -s [speed] -i [inputfile] -o [output file]" << std::endl;
+    std::cout << "\taquestalk_wrapper_win.exe -s [speed] -i [inputfile] -o [output file] -d [dllpath]" << std::endl;
 }
